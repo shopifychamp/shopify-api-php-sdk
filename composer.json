@@ -1,0 +1,23 @@
+{
+    "name": " ShopifyChamp/shopify-private-app-sdk ",
+    "version": "0.0.1",
+    "description": "Connect with shopify public and private app to call REST and Graphql api with PHP",
+    "license": "MIT",
+    "authors": [
+    {
+        "name": "Kshitij Verma",
+        "email": "kshitijverma1012@gmail.com"
+    }
+    
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "rdx/graphql-query" : "^1.1",
+        "guzzlehttp/guzzle": "^6.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Shopify\\": "src/"
+        }
+    }
+}
