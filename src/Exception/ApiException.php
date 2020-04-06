@@ -6,25 +6,28 @@ namespace Shopify\Exception;
  */
 class ApiException extends \Exception
 {
-    /*protected $method;
-    protected $path;
-    protected $params;
-    protected $response_headers;
-    protected $response;
+    /**
+     * @var string
+     * store error message
+     */
+    protected $message;
 
-    function __construct($method, $path, $params, $response_headers, $response)
+    /**
+     * ApiException constructor.
+     * @param $message
+     * @param $code
+     */
+    function __construct($message,$code)
     {
-        $this->method = $method;
-        $this->path = $path;
-        $this->params = $params;
-        $this->response_headers = $response_headers;
-        $this->response = $response;
-        parent::__construct($response_headers['http_status_message'], $response_headers['http_status_code']);
+        $this->message = $message;
+        parent::__construct($message, $code);
     }
 
-    function getMethod() { return $this->method; }
-    function getPath() { return $this->path; }
-    function getParams() { return $this->params; }
-    function getResponseHeaders() { return $this->response_headers; }
-    function getResponse() { return $this->response; }*/
+    /**
+     * @return string
+     * get error message
+     */
+    function getError() {
+        return $this->message;
+    }
 }

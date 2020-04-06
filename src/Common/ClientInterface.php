@@ -20,7 +20,7 @@ interface ClientInterface
      * @param string $query
      * @return mixed
      */
-    public function callGraphql($method, $query);
+    public function callGraphql($query);
 
     /**
      * @param string $method

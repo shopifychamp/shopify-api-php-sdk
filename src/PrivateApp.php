@@ -1,6 +1,5 @@
 <?php
 namespace Shopify;
-use Shopify\Client;
 use Shopify\Common\AppInterface;
 use Shopify\Exception\ApiException;
 
@@ -11,8 +10,8 @@ use Shopify\Exception\ApiException;
 class PrivateApp extends Client implements AppInterface
 {
     /**
-     * @var string
      * Shopify rest base url
+     * @var string
      */
     private $rest_api_url = 'https://{api_key}:{password}@{shopify_domain}/admin/api/{version}/{resource}.json';
 
@@ -47,8 +46,8 @@ class PrivateApp extends Client implements AppInterface
     }
 
     /*
-     * @return string
      * return Shopify base api url based on api call type
+     * @param array
      */
     public function prepareBaseUrl()
     {
@@ -67,11 +66,13 @@ class PrivateApp extends Client implements AppInterface
 
     /**
      * get request headers for api call
+     * @return array
      */
     public function requestHeaders()
     {
         $this->requestHeaders[self::REST_API]['Content-Type'] = "application/json";
         $this->requestHeaders[self::GRAPHQL]['Content-Type'] = "application/graphql";
+        $this->requestHeaders[self::GRAPHQL]['X-GraphQL-Cost-Include-Fields'] = true;
         $this->requestHeaders[self::GRAPHQL][self::SHOPIFY_ACCESS_TOKEN] = $this->password;
     }
 }
