@@ -9,18 +9,18 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
 ## Requirements
 1. For Api call need [Guzzle](https://github.com/guzzle/guzzle). The recommended way to install Guzzle is through [Composer](https://getcomposer.org/).
     ```
-    composer require guzzlehttp/guzzle
+    $ composer require guzzlehttp/guzzle
     ```
 2. To prepare graphql query with [GraphQL query builder](https://github.com/rudiedirkx/graphql-query).
    
-    Clone with Clone with SSH
+    Clone with SSH
     ```
-    git@github.com:rudiedirkx/graphql-query.git
+    $ git@github.com:rudiedirkx/graphql-query.git
     ```
 ## Getting started
 ### Initialize the client
 #### 1.  For Private App
-* To create instance of Client, you need `shop`, `api_key`, `password` of private app, `api_params` is an array to pass api version with `YYYY-DD/unstable` format otherwise latest version will be assigned.
+* To create instance of `Client` class, you need `shop`, `api_key`, `password` of private app, `api_params` is an array to pass api version with `YYYY-DD/unstable` format otherwise, Api latest version will be assigned.
     
     ```
     <?php 
@@ -31,7 +31,7 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
     $client = new Shopify\PrivateApp($shop, $api_key, $password, $api_params);
     ```
 #### 2. For Public/Custom App (under development)
-* To create instance of Client, you need `shop`, `api_key`, `api_secret_key` of private app, `api_params` is an array to pass api version with `YYYY-DD/unstable` format otherwise latest version will be assigned.
+* To create instance of `Client` class, you need `shop`, `api_key`, `api_secret_key` of private app, `api_params` is an array to pass api version with `YYYY-DD/unstable` format otherwise, Api latest version will be assigned.
     
     ```    
     <?php 
@@ -45,32 +45,32 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
 ### Call REST Api    
 * Get Products with limit 250  with `call()` function
     ```
-        $response = $client->call('GET','products',['limit'=>250]);
-        print_r($response);
+    $response = $client->call('GET','products',['limit'=>250]);
+    print_r($response);
     ```
 * Get products of next page with page_info
     ```
-        $response = $client->call('GET','products',['limit'=>250]);
+    $response = $client->call('GET','products',['limit'=>250]);
     ```
     
-    ####### Check next page available with `hasNextPage()` function ####### 
+    Check next page available with `hasNextPage()` function: 
 
     ```
-        if($client->hasNextPage())
-        {
-            $next_page_response $client->call('GET','products',['limit'=>20,'page_info'=>$client->getNextPage()]);
-            print_r($next_page_response);
-        }
+    if($client->hasNextPage())
+    {
+        $next_page_response $client->call('GET','products',['limit'=>20,'page_info'=>$client->getNextPage()]);
+        print_r($next_page_response);
+    }
     ```
     
-    ####### Check if previous page available with `hasPrevPage()` function #######
+    Check if previous page available with `hasPrevPage()` function:
 
     ```
-        if($client->hasPrevPage())
-        {
-            $next_page_response $client->call('GET','products',['limit'=>20,'page_info'=>$client->getPrevPage()]);
-            print_r($next_page_response);
-        }
+    if($client->hasPrevPage())
+    {
+        $prev_page_response $client->call('GET','products',['limit'=>20,'page_info'=>$client->getPrevPage()]);
+        print_r($prev_page_response);
+    }
     ```
     
 ### Call GraphQL Api   
@@ -86,7 +86,7 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
     }
     ```
     
-    ####### Prepare query #######
+    Prepare query:
     
     ```
     <?php 
@@ -101,7 +101,7 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
     
     ```
     
-    ####### Call GraphQL qith `callGraphql()` function #######
+    Call GraphQL qith `callGraphql()` function:
     
     ```
     $response = $client->callGraphql($graphqlString);
@@ -119,7 +119,7 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
     }
     ```
     
-    ####### Prepare mutation #######
+    Prepare mutation:
     
     ```
     <?php 
@@ -133,7 +133,7 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
     $graphqlString = $query->build();
     ```
     
-    ####### Call GraphQL qith `callGraphql()` function #######
+    Call GraphQL qith `callGraphql()` function:
     
     ```
     $response = $client->callGraphql($graphqlString);
