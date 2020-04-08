@@ -4,43 +4,43 @@ use Shopify\Common\AppInterface;
 use Shopify\Exception\ApiException;
 
 /**
- * Class PrivateApp
+ * Class PublicApp
  * @package Shopify
  */
-class PrivateApp extends Client implements AppInterface
+class PublicApp extends Client implements AppInterface
 {
     /**
      * Shopify rest base url
      * @var string
      */
-    private $rest_api_url = 'https://{api_key}:{password}@{shopify_domain}/admin/api/{version}/{resource}.json';
+    private $rest_api_url = 'https://{shopify_domain}/admin/api/{version}/{resource}.json';
 
     /**
-     * PrivateApp constructor.
-     * Shopify url : testshop.myshopify.com
+     * PublicApp constructor.
+     * Shopify domain => testshop.myshopify.com
      * @param $shop
-     * Shopify api key of private app
+     * Shopify api key
      * @param $api_key
-     * Shopify password of private app
-     * @param $password
+     * Shopify api secret key
+     * @param $api_secret_key
      * ['version'=>'2020-01']
      * @param array $api_params
      * @throws ApiException
      */
-    public function __construct($shop, $api_key, $password, array $api_params = [])
+    public function __construct($shop, $api_key, $api_secret_key, array $api_params = [])
     {
         $this->setShop($shop);
         $this->api_key = $api_key;
-        $this->password = $password;
+        $this->api_secret_key = $api_secret_key;
         $this->api_params = $api_params;
         $this->setApiVersion();
         $this->prepareBaseUrl();
         $this->requestHeaders();
     }
 
-    /*
+    /**
      * return Shopify base api url for rest and graphql
-     * @param array
+     * @return string
      */
     public function prepareBaseUrl()
     {
@@ -49,8 +49,6 @@ class PrivateApp extends Client implements AppInterface
                 '{shopify_domain}' => $this->shop, '{version}' => $this->getApiVersion()
             ]),
             self::REST_API => strtr($this->rest_api_url, [
-                '{api_key}' => $this->api_key,
-                '{password}' => $this->password,
                 '{shopify_domain}' => $this->shop,
                 '{version}' => $this->getApiVersion(),
             ])
@@ -64,8 +62,8 @@ class PrivateApp extends Client implements AppInterface
     public function requestHeaders()
     {
         $this->requestHeaders[self::REST_API]['Content-Type'] = "application/json";
+        $this->requestHeaders[self::REST_API][self::SHOPIFY_ACCESS_TOKEN] = $this->access_token;
         $this->requestHeaders[self::GRAPHQL]['Content-Type'] = "application/graphql";
-        $this->requestHeaders[self::GRAPHQL]['X-GraphQL-Cost-Include-Fields'] = true;
         $this->requestHeaders[self::GRAPHQL][self::SHOPIFY_ACCESS_TOKEN] = $this->password;
     }
 }

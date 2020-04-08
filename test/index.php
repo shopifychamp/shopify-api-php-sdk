@@ -23,7 +23,7 @@ try
 
     /* examples :
     1. Call get product by id
-    $query = 'query{
+    $query = '{
         product(id: "gid://shopify/Product/1432379031652") {
           title
           description
