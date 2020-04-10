@@ -6,6 +6,11 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
 * Automatic manage Shopify API rate limits.
 * Compatible with [Cursor Based Pagination](https://shopify.dev/tutorials/make-paginated-requests-to-rest-admin-api) to resource with pagination.
 
+## Installation
+* Install package with Composer
+```
+$ composer require shopifychamp/shopify-api-php-sdk
+```
 ## Requirements
 1. For Api call need [Guzzle](https://github.com/guzzle/guzzle). The recommended way to install Guzzle is through [Composer](https://getcomposer.org/).
     ```
