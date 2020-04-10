@@ -18,9 +18,9 @@ $ composer require shopifychamp/shopify-api-php-sdk
     ```
 2. To prepare graphql query with [GraphQL query builder](https://github.com/rudiedirkx/graphql-query).
    
-    Clone with SSH
+    Clone with SSH in your vendor repository
     ```
-    $ git@github.com:rudiedirkx/graphql-query.git
+    $ git clone git@github.com:rudiedirkx/graphql-query.git
     ```
 ## Getting started
 ### Initialize the client
