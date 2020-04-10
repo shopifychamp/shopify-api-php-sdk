@@ -1,5 +1,5 @@
 # SHOPIFY API PHP SDK
-PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/apps#custom-apps), [Public App](https://shopify.dev/concepts/apps#public-apps) and [Private App](https://shopify.dev/concepts/apps#private-apps) using [RESTApi](https://shopify.dev/docs/admin-api/rest/reference) and [Graphql](https://shopify.dev/docs/admin-api/graphql/reference).
+PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/apps#custom-apps), [Public App](https://shopify.dev/concepts/apps#public-apps) and [Private App](https://shopify.dev/concepts/apps#private-apps) using [REST Api](https://shopify.dev/docs/admin-api/rest/reference) and [Graphql](https://shopify.dev/docs/admin-api/graphql/reference).
 * Call GET, POST, PUT and DELETE RestApi method.
 * Process GraphQL Admin API for [Query root](https://shopify.dev/docs/admin-api/graphql/reference/queryroot) and [Mutations](https://shopify.dev/docs/admin-api/graphql/reference/mutation).
 * Queryroot is used to get resources and mutations is used to update resources (products/orders/customers). 
@@ -20,7 +20,7 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
 ## Getting started
 ### Initialize the client
 #### 1.  For Private App
-* To create instance of `Client` class, you need `shop`, `api_key`, `password` of private app, `api_params` is an array to pass api version with `YYYY-DD/unstable` format otherwise, Api latest version will be assigned.
+* To create instance of `Client` class, need `shop`, `api_key`, `password` of private app, `api_params` is an array to pass api version with `YYYY-DD/unstable` format otherwise, Api latest version will be assigned.
     
     ```
     <?php 
@@ -30,8 +30,8 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
     $api_params['version'] = '2019-10';
     $client = new Shopify\PrivateApp($shop, $api_key, $password, $api_params);
     ```
-#### 2. For Public/Custom App (under development)
-* To create instance of `Client` class, you need `shop`, `api_key`, `api_secret_key` of private app, `api_params` is an array to pass api version with `YYYY-DD/unstable` format otherwise, Api latest version will be assigned.
+#### 2. For Public App
+* To create instance of `Client` class, need `shop`, `api_key`, `api_secret_key` of public app.
     
     ```    
     <?php 
@@ -39,9 +39,54 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
     use Shopify\PuplicApp;
     
     $api_params['version'] = '2019-10';
-    $client = new Shopify\PrivateApp($shop, $api_key, $api_secret_key, $api_params);
+    $client = new Shopify\PublicApp($shop, $api_key, $api_secret_key, $api_params);
     ```
+* Prepare authorise url to install public app and get `access_token`
+    ```
+    if(isset($_GET['code']))
+    {
+        //get access_token after authorization of public app
+        if($access_token = $client->getAccessToken($_GET)){
+            //set access_token for api call
+            $client->setAccessToken($access_token);
+            $response = $client->call('GET','products',['limit'=>250]);
+        }
+    }else{
+        //$redirect_uri (mention in App URL in your public app)
+        $redirect_url= isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on"?'https://':'http://';
+        if ($_SERVER["SERVER_PORT"] != "80") {
+            $redirect_url .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
+        } else {
+            $redirect_url .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+        }
 
+        header('Location: '.urldecode($client->prepareAuthorizeUrl($redirect_url)));
+    }
+    ```
+#### 3. For Custom App (Under Development)
+Note: Oauth process is similar to public app. To authenticate with Shopify by using a custom app, you need to generate an [installation link](https://shopify.dev/tutorials/authenticate-a-custom-app-with-oauth#create-a-custom-app-and-generate-an-installation-link) from your Partner Dashboard. 
+* To create instance of `Client` class, need `shop`, `api_key`, `api_secret_key` of custom app.
+    
+    ```    
+    <?php 
+    require(__DIR__ . '/../vendor/autoload.php');
+    use Shopify\PuplicApp;
+    
+    $api_params['version'] = '2019-10';
+    $client = new Shopify\PublicApp($shop, $api_key, $api_secret_key, $api_params);
+    ```
+* Copy link from `Merchant install link` section in Custom App and run in browser then it redirect to your url provied provided while creating custom app.
+    ```
+    if(isset($_GET['code']))
+    {
+        //get access_token after authorization of public app
+        if($access_token = $client->getAccessToken($_GET)){
+            //set access_token for api call
+            $client->setAccessToken($access_token);
+            $response = $client->call('GET','products',['limit'=>250]);
+        }
+    }  
+    ```  
 ### Call REST Api    
 * Get Products with limit 250  with `call()` function
     ```
@@ -85,7 +130,15 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
         }
     }
     ```
-    
+    Note: 
+    * For single attribute and field
+    ``` 
+        attribute('id','gid://shopify/Product/1432379031652') and field('title')
+    ```    
+    * For multiple attributes and fields 
+    ``` 
+    attributes(['product_type','fragrance','limit'=>250]) and `fields(['title','description'])
+    ```
     Prepare query:
     
     ```
@@ -95,13 +148,12 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
     $query = Query::query("");
     $query->fields('product');
     $query->product->attribute('id', "gid://shopify/Product/1432379031652");
-    $query->product->field('title');
-    $query->product->field('description');
+    $query->product->fields(['title','description']);
     $graphqlString = $query->build();
     
     ```
     
-    Call GraphQL qith `callGraphql()` function:
+    Call GraphQL with `callGraphql()` function:
     
     ```
     $response = $client->callGraphql($graphqlString);
@@ -138,7 +190,59 @@ PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/
     ```
     $response = $client->callGraphql($graphqlString);
     ```
+* Cursor Pagination with graphQL
 
+    ```
+    {
+      products(first: 250) {
+        edges {
+          cursor
+          node {
+            id
+          }
+        }
+      }
+    }
+  ```
+    Prepare Query and `$reserve_query` variable to store query for next page call:
+        
+    ```
+    <?php 
+    use rdx\graphqlquery\Query;
+    
+    $query = Query::query("");
+    $query->fields('products');
+    $query->products->attribute('first', 250);
+    $query->products->field('edges');
+    $query->products->edges->fields(['cursor','node']);
+    $query->products->edges->node->fields(['title','description']);
+    $reserve_query = $query;
+    $graphqlString = $query->build();
+  
+    ```
+    Call GraphQL qith `callGraphql()` function. And 
+        
+    ```
+    $response = $client->callGraphql($graphqlString);
+    
+    ```
+    If you continue repeating this step with the cursor value of the last product in each response you get until your response is empty. So need to check `cursor` index available in last array of `$response` then repeat call by adding cursor value with `after` attribute in products field. 
+    
+    ```
+    if(isset($response['data']['products']['edges']) && $last_array = end($response['data']['products']['edges']))
+    {
+        if(isset($last_array['cursor']))
+        {
+            //assign cursor value in `last` attribute
+            $query = $reserve_query->products->attribute('after', $last_array['cursor']);
+            $graphqlString = $reserve_query->build();
+            $next_response = $client->callGraphql($graphqlString);
+            print_r($next_response);
+        }
+    }
+    ```
+    
+    
 ### Error Handling
 
 Below errors handled with `ApiException` Class

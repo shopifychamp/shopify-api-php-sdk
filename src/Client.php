@@ -69,8 +69,13 @@ class Client implements ClientInterface
      * Shopify shared secret key for private app
      * @var string
      */
-    protected $shared_secret;
+    protected $api_secret_key;
 
+    /**
+     * access token for public app
+     * @var string
+     */
+    protected $access_token;
     /**
      * array('version')
      * @var array
@@ -141,7 +146,17 @@ class Client implements ClientInterface
         }else {
             $options['json'] = $params;
         }
-        return $this->request($method,$url,$options);
+
+        $http_response = $this->request($method,$url,$options);
+        if (strtoupper($method) === 'GET'  && $http_response->getHeaderLine(self::PAGINATION_STRING)) {
+            $this->next_page = $this->parseLinkString($http_response->getHeaderLine(self::PAGINATION_STRING),'next');
+            $this->prev_page = $this->parseLinkString($http_response->getHeaderLine(self::PAGINATION_STRING),'previous');
+        }
+        if($http_response->getHeaderLine(self::API_CALL_RATE_LIMIT_HEADER)) {
+            list($api_call_requested, $api_call_Limit) = explode('/', $http_response->getHeaderLine(self::API_CALL_RATE_LIMIT_HEADER));
+            static::$wait_next_api_call = $api_call_requested / $api_call_Limit >= 0.8;
+        }
+        return \GuzzleHttp\json_decode($http_response->getBody()->getContents(),true);
     }
 
     /**
@@ -158,18 +173,19 @@ class Client implements ClientInterface
         if(isset($this->requestHeaders[self::GRAPHQL]) && is_array($this->requestHeaders[self::GRAPHQL])) {
             $options['headers'] = $this->requestHeaders[self::GRAPHQL];
         }
-
         $options['body'] = $query;
         if(self::$wait_next_api_call)
         {
             usleep(1000000 * rand(3, 6));
         }
-        $response = $this->request('POST', $url, $options);
+        $http_response = $this->request('POST', $url, $options);
+        $response = \GuzzleHttp\json_decode($http_response->getBody()->getContents(),true);
         if(isset($response['errors']))
         {
             $http_bad_request_code = 400;
             throw new ApiException(\GuzzleHttp\json_encode($response['errors']),$http_bad_request_code);
         }
+        return $response;
     }
 
     /**
@@ -185,32 +201,21 @@ class Client implements ClientInterface
         try
         {
             $client  = new \GuzzleHttp\Client();
-            $http_response = $client->request($method, $url, $options);
-            $response_content = $http_response->getBody()->getContents();
-            $response = [];
-            if (strtoupper($method) === 'GET'  && $http_response->getHeaderLine(self::PAGINATION_STRING)) {
-                $this->next_page = $this->parseLinkString($http_response->getHeaderLine(self::PAGINATION_STRING),'next');
-                $this->prev_page = $this->parseLinkString($http_response->getHeaderLine(self::PAGINATION_STRING),'previous');
-            }
-
-            $response = \GuzzleHttp\json_decode($response_content,true);
-            if($http_response->getHeaderLine(self::API_CALL_RATE_LIMIT_HEADER)) {
-                list($api_call_requested, $api_call_Limit) = explode('/', $http_response->getHeaderLine(self::API_CALL_RATE_LIMIT_HEADER));
-                static::$wait_next_api_call = $api_call_requested / $api_call_Limit >= 0.8;
-            }
+            return $client->request($method, $url, $options);
         }
         catch (RequestException $e)
         {
-            $json_error = json_decode($e->getResponse()->getBody()->getContents(),true);
-            if(isset($json_error['errors'])) {
-                $error_message = $json_error['errors'];
+
+            if(!empty($e->getResponse()->getBody()->getContents()))
+            {
+                $json_error = json_decode($e->getResponse()->getBody()->getContents(),true);
+                $error_message = isset($json_error['errors'])?$json_error['errors']:\GuzzleHttp\json_encode($json_error);
             }
             else {
-                $error_message = $e->getResponse()->getBody()->getContents();
+                $error_message = $e->getMessage();
             }
             throw new ApiException($error_message,$e->getCode());
         }
-        return $response;
     }
 
     /**
