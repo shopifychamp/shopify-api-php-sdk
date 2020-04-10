@@ -1,5 +1,5 @@
 {
-    "name": "ShopifyChamp/shopify-api-php-sdk",
+    "name": "shopifyChamp/shopify-api-php-sdk",
     "description": "PHP SDK to connect with Shopify Custom, Public and Private App using REST Api and Graphql",
     "keywords": ["shopify", "sdk", "rest api", "graphql", "php", "public app", "private app"],
     "license": "MIT",
