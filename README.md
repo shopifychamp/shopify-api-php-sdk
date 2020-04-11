@@ -1,5 +1,5 @@
 # SHOPIFY API PHP SDK
-===========
+
 [![Build Status](https://travis-ci.org/shopifychamp/shopify-api-php-sdk.svg?branch=master)](https://travis-ci.org/shopifychamp/shopify-api-php-sdk)
 
 PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/apps#custom-apps), [Public App](https://shopify.dev/concepts/apps#public-apps) and [Private App](https://shopify.dev/concepts/apps#private-apps) using [REST Api](https://shopify.dev/docs/admin-api/rest/reference) and [Graphql](https://shopify.dev/docs/admin-api/graphql/reference).
