@@ -17,7 +17,7 @@ try
     {
         if($access_token = $client->getAccessToken($_GET)){
             $client->setAccessToken($access_token);
-
+            print_r($access_token);
         }
     }else{
         $redirect_url= isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on"?'https://':'http://';

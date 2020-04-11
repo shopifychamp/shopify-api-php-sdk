@@ -46,7 +46,7 @@ $ composer require shopifychamp/shopify-api-php-sdk
     $api_params['version'] = '2019-10';
     $client = new Shopify\PublicApp($shop, $api_key, $api_secret_key, $api_params);
     ```
-* Prepare authorise url to install public app and get `access_token`
+* Prepare authorise url to install public app and get `access_token` to store in database or session for future api call.
     ```
     if(isset($_GET['code']))
     {
