@@ -13,7 +13,7 @@ class PrivateApp extends Client implements AppInterface
      * Shopify rest base url
      * @var string
      */
-    private $rest_api_url = 'https://{api_key}:{password}@{shopify_domain}/admin/api/{version}/{resource}.json';
+    protected $rest_api_url = 'https://{api_key}:{password}@{shopify_domain}/admin/api/{version}/{resource}.json';
 
     /**
      * PrivateApp constructor.
@@ -33,39 +33,10 @@ class PrivateApp extends Client implements AppInterface
         $this->api_key = $api_key;
         $this->password = $password;
         $this->api_params = $api_params;
-        $this->setApiVersion();
-        $this->prepareBaseUrl();
-        $this->requestHeaders();
-    }
-
-    /*
-     * return Shopify base api url for rest and graphql
-     * @param array
-     */
-    public function prepareBaseUrl()
-    {
-        $this->base_urls = [
-            self::GRAPHQL => strtr($this->graphql_api_url, [
-                '{shopify_domain}' => $this->shop, '{version}' => $this->getApiVersion()
-            ]),
-            self::REST_API => strtr($this->rest_api_url, [
-                '{api_key}' => $this->api_key,
-                '{password}' => $this->password,
-                '{shopify_domain}' => $this->shop,
-                '{version}' => $this->getApiVersion(),
-            ])
-        ];
-    }
-
-    /**
-     * request header array for rest and graphql api call
-     * @return array
-     */
-    public function requestHeaders()
-    {
-        $this->requestHeaders[self::REST_API]['Content-Type'] = "application/json";
-        $this->requestHeaders[self::GRAPHQL]['Content-Type'] = "application/graphql";
-        $this->requestHeaders[self::GRAPHQL]['X-GraphQL-Cost-Include-Fields'] = true;
-        $this->requestHeaders[self::GRAPHQL][self::SHOPIFY_ACCESS_TOKEN] = $this->password;
+        $this->setApiVersion($this->api_params);
+        $this->setGraphqlApiUrl($this->graphql_api_url);
+        $this->setRestApiUrl($this->rest_api_url, self::PRIVATE_APP);
+        $this->setRestApiHeaders();
+        $this->setGraphqlApiHeaders($this->password);
     }
 }

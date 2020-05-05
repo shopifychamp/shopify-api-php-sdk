@@ -15,12 +15,6 @@ class PublicApp extends Client implements AppInterface
     const SCOPE = 'read_products,read_orders';
 
     /**
-     * Shopify rest base url
-     * @var string
-     */
-    private $rest_api_url = 'https://{shopify_domain}/admin/api/{version}/{resource}.json';
-
-    /**
      *
      * @var string
      */
@@ -51,36 +45,8 @@ class PublicApp extends Client implements AppInterface
         $this->api_secret_key = $api_secret_key;
         $this->api_params = $api_params;
         $this->setApiVersion();
-        $this->prepareBaseUrl();
-    }
-
-    /**
-     * return Shopify base api url for rest and graphql
-     * @return string
-     */
-    public function prepareBaseUrl()
-    {
-        $this->base_urls = [
-            self::GRAPHQL => strtr($this->graphql_api_url, [
-                '{shopify_domain}' => $this->shop, '{version}' => $this->getApiVersion()
-            ]),
-            self::REST_API => strtr($this->rest_api_url, [
-                '{shopify_domain}' => $this->shop,
-                '{version}' => $this->getApiVersion(),
-            ])
-        ];
-    }
-
-    /**
-     * request header array for rest and graphql api call
-     * @return array|void
-     */
-    public function requestHeaders()
-    {
-        $this->requestHeaders[self::REST_API]['Content-Type'] = "application/json";
-        $this->requestHeaders[self::REST_API][self::SHOPIFY_ACCESS_TOKEN] = $this->access_token;
-        $this->requestHeaders[self::GRAPHQL]['Content-Type'] = "application/graphql";
-        $this->requestHeaders[self::GRAPHQL][self::SHOPIFY_ACCESS_TOKEN] = $this->access_token;
+        $this->setGraphqlApiUrl($this->graphql_api_url);
+        $this->setRestApiUrl($this->rest_api_url);
     }
 
     /**
@@ -90,7 +56,42 @@ class PublicApp extends Client implements AppInterface
     public function setAccessToken($access_token)
     {
         $this->access_token =  $access_token;
-        $this->requestHeaders();
+        $this->setRestApiHeaders($this->access_token);
+        $this->setGraphqlApiHeaders($this->access_token);
+    }
+
+    /**
+     * Once the User has authorized the app, call to get the access token
+     * @param $get_params
+     * @return mixed
+     * @throws ApiException
+     * @throws ClientException
+     */
+    public function getAccessToken($get_params)
+    {
+        if(isset($get_params['code'],$get_params['hmac']))
+        {
+            if(isset($get_params['state']) && !$this->validateState($get_params))
+                throw new ApiException("Previous state value('".$this->getState()."') doesn't match with current value('".$get_params['state']."')",0);
+            if(!$this->validateHmac($get_params,$get_params['hmac']))
+                throw new ApiException("Hmac validation failed",0);
+            $access_token_url = $this->oauth_url.'access_token';
+            $access_token_url = strtr($access_token_url,['{shopify_domain}'=> $this->shop]);
+            $params['client_id'] = $this->api_key;
+            $params['client_secret'] = $this->api_secret_key;
+            $params['code'] = $get_params['code'];
+            $http_response = $this->request('POST', $access_token_url, ['query'=>$params]);
+            $response = \GuzzleHttp\json_decode($http_response->getBody()->getContents(),true);
+            if(isset($response['access_token']))
+            {
+                $this->setAccessToken($response['access_token']);
+                return $response['access_token'];
+            }
+        }
+        else {
+            throw new ApiException('Unable to authorise app, check your credentials',0);
+        }
+
     }
 
     /**
@@ -115,42 +116,9 @@ class PublicApp extends Client implements AppInterface
         }
         if($state){
             $this->setState($state);
-            $authorise_url.='&state='.$this->state;
+            $authorise_url.='&state='.$this->getState();
         }
         return $authorise_url;
-    }
-
-    /**
-     * Once the User has authorized the app, call to get the access token
-     * @param $get_params
-     * @return mixed
-     * @throws ApiException
-     */
-    public function getAccessToken($get_params)
-    {
-        if(isset($get_params['code'],$get_params['hmac']))
-        {
-            if(isset($get_params['state']) && !$this->validateState($get_params))
-                throw new ApiException("Previous state value('".$this->state."') doesn't match with current value('".$get_params['state']."')",0);
-            if(!$this->validateHmac($get_params,$get_params['hmac']))
-                throw new ApiException("Hmac validation failed",0);
-            $access_token_url = $this->oauth_url.'access_token';
-            $access_token_url = strtr($access_token_url,['{shopify_domain}'=> $this->shop]);
-            $params['client_id'] = $this->api_key;
-            $params['client_secret'] = $this->api_secret_key;
-            $params['code'] = $get_params['code'];
-            $http_response = $this->request('POST', $access_token_url, ['query'=>$params]);
-            $response = \GuzzleHttp\json_decode($http_response->getBody()->getContents(),true);
-            if(isset($response['access_token']))
-            {
-                $this->setAccessToken($response['access_token']);
-                return $response['access_token'];
-            }
-        }
-        else {
-            throw new ApiException('Unable to authorise app, check your credentials',0);
-        }
-
     }
 
     /**
@@ -160,6 +128,15 @@ class PublicApp extends Client implements AppInterface
     public function setState($state)
     {
         $this->state = $state;
+    }
+
+    /**
+     * get random unique value for authorization request
+     * @return string
+     */
+    public function getState()
+    {
+        return $this->state;
     }
 
     /**
@@ -184,7 +161,7 @@ class PublicApp extends Client implements AppInterface
      */
     public function validateState($params)
     {
-        if($params['state'] === $this->state)
+        if($params['state'] === $this->getState())
             return true;
         return true;
     }

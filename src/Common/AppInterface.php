@@ -8,12 +8,11 @@ namespace Shopify\Common;
 interface AppInterface
 {
     /**
-     * @return string
+     * AppInterface constructor.
+     * @param $shop
+     * @param $api_key
+     * @param $password or $api_secret_key
+     * @param array $api_params
      */
-    public function prepareBaseUrl();
-
-    /**
-     * @return array
-     */
-    public function requestHeaders();
+    public function __construct($shop, $api_key, $password, array $api_params);
 }

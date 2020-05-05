@@ -4,7 +4,7 @@
 [![Latest Stable Version](https://poser.pugx.org/shopifychamp/shopify-api-php-sdk/v/stable)](https://packagist.org/packages/shopifychamp/shopify-api-php-sdk)
 [![License](https://poser.pugx.org/shopifychamp/shopify-api-php-sdk/license)](https://packagist.org/packages/shopifychamp/shopify-api-php-sdk)
 
-PHP SDK helps to connect with shopify [Custom App](https://shopify.dev/concepts/apps#custom-apps), [Public App](https://shopify.dev/concepts/apps#public-apps) and [Private App](https://shopify.dev/concepts/apps#private-apps) using [REST Api](https://shopify.dev/docs/admin-api/rest/reference) and [Graphql](https://shopify.dev/docs/admin-api/graphql/reference).
+PHP SDK helps to connect with shopify [Public App](https://shopify.dev/concepts/apps#public-apps) and [Private App](https://shopify.dev/concepts/apps#private-apps) using [REST Api](https://shopify.dev/docs/admin-api/rest/reference) and [Graphql](https://shopify.dev/docs/admin-api/graphql/reference).
 * Call GET, POST, PUT and DELETE RestApi method.
 * Process GraphQL Admin API for [Query root](https://shopify.dev/docs/admin-api/graphql/reference/queryroot) and [Mutations](https://shopify.dev/docs/admin-api/graphql/reference/mutation).
 * Queryroot is used to get resources and mutations is used to update resources (products/orders/customers). 
@@ -72,30 +72,6 @@ $ composer require shopifychamp/shopify-api-php-sdk
         header('Location: '.urldecode($client->prepareAuthorizeUrl($redirect_url)));
     }
     ```
-#### 3. For Custom App (Under Development)
-Note: Oauth process is similar to public app. To authenticate with Shopify by using a custom app, you need to generate an [installation link](https://shopify.dev/tutorials/authenticate-a-custom-app-with-oauth#create-a-custom-app-and-generate-an-installation-link) from your Partner Dashboard. 
-* To create instance of `Client` class, need `shop`, `api_key`, `api_secret_key` of custom app.
-    
-    ```    
-    <?php 
-    require(__DIR__ . '/../vendor/autoload.php');
-    use Shopify\PuplicApp;
-    
-    $api_params['version'] = '2019-10';
-    $client = new Shopify\PublicApp($shop, $api_key, $api_secret_key, $api_params);
-    ```
-* Copy link from `Merchant install link` section in Custom App and run in browser then it redirect to your url provied provided while creating custom app.
-    ```
-    if(isset($_GET['code']))
-    {
-        //get access_token after authorization of public app
-        if($access_token = $client->getAccessToken($_GET)){
-            //set access_token for api call
-            $client->setAccessToken($access_token);
-            $response = $client->call('GET','products',['limit'=>250]);
-        }
-    }  
-    ```  
 ### Call REST Api    
 * Get Products with limit 250  with `call()` function
     ```
