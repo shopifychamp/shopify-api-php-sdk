@@ -12,7 +12,14 @@ try {
     $client = new Shopify\PrivateApp($shop, $api_key, $password, $api_params);
     /**rest api call**/
     $response = $client->call('GET', 'products', ['limit' => 1]);
-    print_r($response);
+    if($client->hasNextPage()){
+        $response = $client->call('GET','products',[
+            'limit'=>20,
+            'page_info'=>$client->getNextPage()
+        ]);
+        print_r($response);
+    }
+
 }
 catch (\Shopify\Exception\ApiException $e)
 {

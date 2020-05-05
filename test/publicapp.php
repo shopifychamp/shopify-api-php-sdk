@@ -17,8 +17,16 @@ try
     {
         if($access_token = $client->getAccessToken($_GET)){
             $client->setAccessToken($access_token);
-            print_r($access_token);
+            $response = $client->call('GET', 'products', ['limit' => 1]);
+            if($client->hasNextPage()){
+                $response = $client->call('GET','products',[
+                    'limit'=>20,
+                    'page_info'=>$client->getNextPage()
+                ]);
+                print_r($response);
+            }
         }
+
     }else{
         $redirect_url= isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on"?'https://':'http://';
         if ($_SERVER["SERVER_PORT"] != "80") {
@@ -29,8 +37,6 @@ try
 
         header('Location: '.urldecode($client->prepareAuthorizeUrl($redirect_url)));
     }
-
-
 }catch (\Shopify\Exception\ApiException $e){
     echo "Errors: ".$e->getError().'<br> status code: '.$e->getCode();
 }

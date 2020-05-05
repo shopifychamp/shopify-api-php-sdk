@@ -88,7 +88,7 @@ $ composer require shopifychamp/shopify-api-php-sdk
     ```
     if($client->hasNextPage())
     {
-        $next_page_response $client->call('GET','products',['limit'=>20,'page_info'=>$client->getNextPage()]);
+        $next_page_response = $client->call('GET','products',['limit'=>20,'page_info'=>$client->getNextPage()]);
         print_r($next_page_response);
     }
     ```
@@ -98,7 +98,7 @@ $ composer require shopifychamp/shopify-api-php-sdk
     ```
     if($client->hasPrevPage())
     {
-        $prev_page_response $client->call('GET','products',['limit'=>20,'page_info'=>$client->getPrevPage()]);
+        $prev_page_response = $client->call('GET','products',['limit'=>20,'page_info'=>$client->getPrevPage()]);
         print_r($prev_page_response);
     }
     ```
