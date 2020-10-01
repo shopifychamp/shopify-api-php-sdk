@@ -1,4 +1,5 @@
 <?php
+
 namespace Shopify;
 use Shopify\Common\AppInterface;
 use Shopify\Exception\ApiException;
@@ -44,7 +45,7 @@ class PublicApp extends Client implements AppInterface
         $this->api_key = $api_key;
         $this->api_secret_key = $api_secret_key;
         $this->api_params = $api_params;
-        $this->setApiVersion();
+        $this->setApiVersion($this->api_params);
         $this->setGraphqlApiUrl($this->graphql_api_url);
         $this->setRestApiUrl($this->rest_api_url);
     }
@@ -151,6 +152,7 @@ class PublicApp extends Client implements AppInterface
             unset($data['hmac']);
             array_values($data);
         }
+
         return ($hmac === hash_hmac('sha256', is_array($data) ? http_build_query($data) : $data, $this->api_secret_key));
     }
 
@@ -163,6 +165,6 @@ class PublicApp extends Client implements AppInterface
     {
         if($params['state'] === $this->getState())
             return true;
-        return true;
+        return false;
     }
 }

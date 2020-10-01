@@ -14,7 +14,7 @@ class Client implements ClientInterface
     /**
      * define constant for current Shopify api version
      */
-    const SHOPIFY_API_VERSION = '2020-01';
+    const SHOPIFY_API_VERSION = '2020-07';
 
     /**
      * define rest api call
@@ -450,7 +450,7 @@ class Client implements ClientInterface
      *  @param $api_password
      */
     public function setApiPassword($api_password){
-        $this->api_key = $api_password;
+        $this->password = $api_password;
     }
 
     /**

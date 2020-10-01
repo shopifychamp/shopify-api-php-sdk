@@ -3,25 +3,24 @@
 namespace Shopify\Test;
 
 use Shopify\PrivateApp;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Class PrivateAppTest
  * @package Shopify
  */
-class AppTest extends TestCase
+class ClientTest extends TestCase
 {
-    public function setUp()
+    public function setUp() : void
     {
         $this->testClient = new PrivateApp(
-            'foo.myshopify.com',
-            'foobarfoobar123',
-            'foobarfoobar123',
-            ['version'=>$this->getTestApiVersion()]
+            $this->testShop(),
+            $this->testApiKey(),
+            $this->testApiSecretKey(),
+            ['version'=>$this->testApiVersion()]
         );
     }
 
-    public function tearDown()
+    public function tearDown() : void
     {
         unset($this->client);
         unset($this->testClient);
