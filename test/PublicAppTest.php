@@ -48,6 +48,11 @@ class PublicAppTest extends TestCase
         $this->testClient->getAccessToken($api_data);
     }
 
+    /**
+     * prepare oauth url with redirect uri
+     * set scope and request_uri
+     * @return void
+     */
     public function testAuthUrl()
     {
         $redirect_uri = 'test.com';
@@ -59,4 +64,6 @@ class PublicAppTest extends TestCase
             $this->testClient->prepareAuthorizeUrl($redirect_uri, $scope, $this->testClient->getState())
         );
     }
+
+    
 }

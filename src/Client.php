@@ -222,11 +222,9 @@ class Client implements ClientInterface
         }
         catch (RequestException $e)
         {
-
-            if(!empty($e->getResponse()->getBody()->getContents()))
-            {
-                $json_error = json_decode($e->getResponse()->getBody()->getContents(),true);
-                $error_message = isset($json_error['errors'])?$json_error['errors']:\GuzzleHttp\json_encode($json_error);
+            $json_error = json_decode($e->getResponse()->getBody()->getContents(),true);
+            if (isset($json_error['errors'])) {
+                $error_message = \GuzzleHttp\json_encode($json_error);
             }
             else {
                 $error_message = $e->getMessage();
