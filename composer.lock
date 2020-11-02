@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3a6b4d4c19a00cf63da252fe60dea520",
+    "content-hash": "76dc39f4a20845ff9fb0d2b1ee77d67d",
     "packages": [
         {
             "name": "rdx/graphql-query",
