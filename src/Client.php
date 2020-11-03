@@ -215,16 +215,15 @@ class Client implements ClientInterface
      */
     public function request($method,$url,array $options)
     {
-        try
-        {
+        try {
             $client  = new \GuzzleHttp\Client();
             return $client->request($method, $url, $options);
         }
-        catch (RequestException $e)
-        {
-            $json_error = json_decode($e->getResponse()->getBody()->getContents(),true);
-            if (isset($json_error['errors'])) {
-                $error_message = \GuzzleHttp\json_encode($json_error);
+        catch (RequestException $e) {
+            $error_response = $e->getResponse()->getBody()->getContents();
+            if(!empty($error_response)) {
+                $json_error = json_decode($error_response,true);
+                $error_message = isset($json_error['errors'])?json_encode($json_error['errors']):json_encode($json_error);
             }
             else {
                 $error_message = $e->getMessage();
