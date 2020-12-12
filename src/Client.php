@@ -218,6 +218,7 @@ class Client implements ClientInterface
     public function request($method,$url,array $options)
     {
         try {
+            
             $client  = new \GuzzleHttp\Client();
             return $client->request($method, $url, $options);
         }
