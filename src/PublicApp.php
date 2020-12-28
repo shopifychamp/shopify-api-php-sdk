@@ -11,7 +11,7 @@ use Shopify\Exception\ApiException;
 class PublicApp extends Client implements AppInterface
 {
     /**
-     * Define scope for api access
+     * define scope for api access
      */
     const SCOPE = 'read_products,read_orders';
 
@@ -22,7 +22,7 @@ class PublicApp extends Client implements AppInterface
     private $oauth_url = 'https://{shopify_domain}/admin/oauth/';
 
     /**
-     * Random unique value for each authorization request
+     * random unique value for each authorization request
      * @var state
      */
     private $state;
@@ -51,7 +51,7 @@ class PublicApp extends Client implements AppInterface
     }
 
     /**
-     * Assign access token for api call
+     * assign access token for api call
      * @param $access_token
      */
     public function setAccessToken($access_token)
@@ -96,7 +96,7 @@ class PublicApp extends Client implements AppInterface
     }
 
     /**
-     * Prepare url to authorize public app with Oauth for given shop domain
+     * prepare url to authorize public app with Oauth for given shop domain
      * @param $scope
      * @param null $redirect_url
      * @param $state
@@ -123,7 +123,7 @@ class PublicApp extends Client implements AppInterface
     }
 
     /**
-     * Set random unique value for authorization request
+     * set random unique value for authorization request
      * @param $state
      */
     public function setState($state)
@@ -132,7 +132,7 @@ class PublicApp extends Client implements AppInterface
     }
 
     /**
-     * Get random unique value for authorization request
+     * get random unique value for authorization request
      * @return string
      */
     public function getState()
@@ -157,7 +157,7 @@ class PublicApp extends Client implements AppInterface
     }
 
     /**
-     * Check random value same with previous value set for authorization request
+     * check random value same with previous value set for authorization request
      * @param $state
      * @return bool
      */
