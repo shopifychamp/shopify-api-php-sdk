@@ -216,7 +216,12 @@ class Client implements ClientInterface
         if(isset($response['errors']))
         {
             $http_bad_request_code = 400;
-            throw new ApiException(\GuzzleHttp\json_encode($response['errors']),$http_bad_request_code);
+
+            $error_message = $response['errors'];
+            if(is_array($response['errors']))
+                $error_message = json_encode($response['errors']);
+
+            throw new ApiException($error_message,$http_bad_request_code);
         }
         return $response;
     }
@@ -245,6 +250,10 @@ class Client implements ClientInterface
             else {
                 $error_message = $e->getMessage();
             }
+
+            if(is_array($error_message))
+                $error_message = json_encode($error_message);
+
             throw new ApiException($error_message,$e->getCode());
         }
     }
