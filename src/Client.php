@@ -240,7 +240,7 @@ class Client implements ClientInterface
         {
             $json_error = json_decode($e->getResponse()->getBody()->getContents(),true);
             if (isset($json_error['errors'])) {
-                $error_message = \GuzzleHttp\json_encode($json_error);
+                $error_message = $json_error['errors'];
             }
             else {
                 $error_message = $e->getMessage();
