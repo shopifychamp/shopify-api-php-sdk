@@ -1,6 +1,7 @@
 <?php
 
 namespace Shopify;
+use GuzzleHttp\Exception\GuzzleException;
 use Shopify\Common\AppInterface;
 use Shopify\Exception\ApiException;
 
@@ -11,24 +12,27 @@ use Shopify\Exception\ApiException;
 class PublicApp extends Client implements AppInterface
 {
     /**
-     * define scope for api access
+     * Define scope for api access
      */
     const SCOPE = 'read_products,read_orders';
 
     /**
+     * Define Shopify oauth url for access scopes
      *
      * @var string
      */
     private $oauth_url = 'https://{shopify_domain}/admin/oauth/';
 
     /**
-     * random unique value for each authorization request
-     * @var state
+     * Random unique value for each authorization request
+     *
+     * @var string
      */
     private $state;
 
     /**
-     * PublicApp constructor.
+     * PublicApp constructor
+     *
      * Shopify domain => testshop.myshopify.com
      * @param $shop
      * Shopify api key
@@ -51,7 +55,8 @@ class PublicApp extends Client implements AppInterface
     }
 
     /**
-     * assign access token for api call
+     * Assign access token for api call
+     *
      * @param $access_token
      */
     public function setAccessToken($access_token)
@@ -63,10 +68,11 @@ class PublicApp extends Client implements AppInterface
 
     /**
      * Once the User has authorized the app, call to get the access token
+     *
      * @param $get_params
-     * @return mixed
+     * @return mixed|void
      * @throws ApiException
-     * @throws ClientException
+     * @throws GuzzleException
      */
     public function getAccessToken($get_params)
     {
@@ -96,11 +102,12 @@ class PublicApp extends Client implements AppInterface
     }
 
     /**
-     * prepare url to authorize public app with Oauth for given shop domain
+     * Prepare url to authorize public app with Oauth for given shop domain
+     *
      * @param $scope
      * @param null $redirect_url
      * @param $state
-     * @return false|string
+     * @return string
      */
     public function prepareAuthorizeUrl($redirect_url='', $scope='', $state=false)
     {
@@ -123,7 +130,8 @@ class PublicApp extends Client implements AppInterface
     }
 
     /**
-     * set random unique value for authorization request
+     * Set random unique value for authorization request
+     *
      * @param $state
      */
     public function setState($state)
@@ -132,7 +140,8 @@ class PublicApp extends Client implements AppInterface
     }
 
     /**
-     * get random unique value for authorization request
+     * Get random unique value for authorization request
+     *
      * @return string
      */
     public function getState()
@@ -142,6 +151,7 @@ class PublicApp extends Client implements AppInterface
 
     /**
      * HMAC verification procedure for OAuth/webhooks
+     *
      * @param $data
      * @param $hmac
      * @return bool
@@ -157,8 +167,9 @@ class PublicApp extends Client implements AppInterface
     }
 
     /**
-     * check random value same with previous value set for authorization request
-     * @param $state
+     * Check random value same with previous value set for authorization request
+     *
+     * @param $params
      * @return bool
      */
     public function validateState($params)
