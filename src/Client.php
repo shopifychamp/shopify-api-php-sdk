@@ -1,7 +1,9 @@
 <?php
 namespace Shopify;
 
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
+use Psr\Http\Message\ResponseInterface;
 use Shopify\Common\ClientInterface;
 use Shopify\Exception\ApiException;
 
@@ -14,7 +16,7 @@ class Client implements ClientInterface
     /**
      * Define constant for current Shopify api version
      */
-    const SHOPIFY_API_VERSION = '2020-07';
+    const SHOPIFY_API_VERSION = '2021-07';
 
     /**
      * Define rest api call
@@ -30,6 +32,11 @@ class Client implements ClientInterface
      * Header parameter of shopify access token
      */
     const SHOPIFY_ACCESS_TOKEN = 'X-Shopify-Access-Token';
+
+    /**
+     * Header parameter of shopify access token
+     */
+    const SHOPIFY_STOREFRONT_ACCESS_TOKEN = 'X-Shopify-Storefront-Access-Token';
 
     /**
      * Define response header pagination string
@@ -52,6 +59,13 @@ class Client implements ClientInterface
      * @var string
      */
     protected $graphql_api_url = "https://{shopify_domain}/admin/api/{version}/graphql.json";
+
+    /**
+     * Shopify api type either admin API or Storefront API
+     *
+     * @var string
+     */
+    protected $api_type = "admin";
 
     /**
      * Rest api url for custom/public app
@@ -146,14 +160,12 @@ class Client implements ClientInterface
     protected static $wait_next_api_call = false;
 
     /**
-     * Prepare data for rest api request
-     *
      * @param $method
      * @param $path
      * @param array $params
-     * @return array
+     * @return mixed
      * @throws ApiException
-     * @throws ClientException
+     * @throws GuzzleException
      */
     public function call($method, $path , array $params = [])
     {
@@ -177,14 +189,14 @@ class Client implements ClientInterface
         ]);
         if(in_array($method,['GET','DELETE'])) {
             $options['query'] = $params;
-        }else {
+        } else {
             $options['json'] = $params;
         }
 
-        if(self::$wait_next_api_call)
-        {
+        if(self::$wait_next_api_call) {
             usleep(1000000 * rand(3, 6));
         }
+
         $http_response = $this->request($method,$url,$options);
         if (strtoupper($method) === 'GET'  && $http_response->getHeaderLine(self::PAGINATION_STRING)) {
             $this->next_page = $this->parseLinkString($http_response->getHeaderLine(self::PAGINATION_STRING),'next');
@@ -204,7 +216,8 @@ class Client implements ClientInterface
      * @return string
      *
      */
-    public function apiScopeUrl($url){
+    public function apiScopeUrl($url)
+    {
         return str_replace('api/'.$this->getApiVersion().'/', 'oauth/', $url);
     }
 
@@ -212,16 +225,16 @@ class Client implements ClientInterface
      * Prepare data for graphql api request
      *
      * @param string $query
-     * @return mixed|void
+     * @return mixed
      * @throws ApiException
-     * @throws ClientException
+     * @throws GuzzleException
      */
     public function callGraphql($query)
     {
         $url = $this->getGraphqlApiUrl();
         $options = [];
-        if(is_array($this->getRestApiHeaders()) && count($this->getRestApiHeaders()))   {
-            $options['headers'] = $this->getRestApiHeaders();
+        if(is_array($this->getGraphqlApiHeaders()) && count($this->getGraphqlApiHeaders()))   {
+            $options['headers'] = $this->getGraphqlApiHeaders();
         }
         $options['body'] = $query;
         $http_response = $this->request('POST', $url, $options);
@@ -240,12 +253,13 @@ class Client implements ClientInterface
     }
 
     /**
-     * send http request
+     * Send http request
+     *
      * @param string $method
      * @param string $url
      * @param array $options
-     * @return array|mixed
-     * @throws ApiException
+     * @return ResponseInterface
+     * @throws ApiException|GuzzleException
      */
     public function request($method,$url,array $options)
     {
@@ -265,7 +279,8 @@ class Client implements ClientInterface
     }
 
     /**
-     * get previous page_info for any resource(products/orders)
+     * Get previous page_info for any resource(products/orders)
+     *
      * @return string
      */
     public function getPrevPage()
@@ -274,8 +289,9 @@ class Client implements ClientInterface
     }
 
     /**
-     * check previous page_info for any resource(products/orders)
-     * @return string
+     * Check previous page_info for any resource(products/orders)
+     *
+     * @return bool
      */
     public function hasPrevPage()
     {
@@ -283,23 +299,28 @@ class Client implements ClientInterface
     }
 
     /**
-     * get next page_info for any resource(products/orders)
+     * Get next page_info for any resource(products/orders)
+     *
      * @return string
      */
-    public function getNextPage(){
+    public function getNextPage()
+    {
         return $this->next_page;
     }
 
     /**
-     * check next page_info for any resource(products/orders)
-     * @return string
+     * Check next page_info for any resource(products/orders)
+     *
+     * @return bool
      */
-    public function hasNextPage(){
+    public function hasNextPage()
+    {
         return !empty($this->next_page);
     }
 
     /**
-     * parse header string for previous and next page_info
+     * Parse header string for previous and next page_info
+     *
      * @param $pagination_string
      * @param $page_link
      * @return string
@@ -312,7 +333,8 @@ class Client implements ClientInterface
     }
 
     /**
-     * return allowed http api methods
+     * Return allowed http api methods
+     *
      * @return array
      */
     public function getHttpMethods()
@@ -321,7 +343,8 @@ class Client implements ClientInterface
     }
 
     /**
-     * set shopify domain
+     * Set shopify domain
+     *
      * @param $shop
      * Exception for invalid shop name
      * @throws ApiException
@@ -337,7 +360,8 @@ class Client implements ClientInterface
     }
 
     /**
-     * return latest api version
+     * Return latest api version
+     *
      * @return string
      */
     public function getApiVersion()
@@ -346,7 +370,8 @@ class Client implements ClientInterface
     }
 
     /**
-     * set api version
+     * Set api version
+     *
      * @param api_version
      * Exception for valid value
      * @throws ApiException
@@ -361,7 +386,8 @@ class Client implements ClientInterface
     }
 
     /**
-     * return Shopify domain
+     * Return Shopify domain
+     *
      * @return string
      */
     public function getShop()
@@ -370,7 +396,22 @@ class Client implements ClientInterface
     }
 
     /**
-     * set rest api url
+     * Set new graphql api url for storefront API
+     *
+     * @param array
+     */
+    public function setStoreFrontApi($api_params)
+    {
+        // Change graphql url and api_type for Storefront API
+        if (isset($api_params['api_type']) && $api_params['api_type'] == 'storefront') {
+            $this->graphql_api_url = 'https://{shopify_domain}/api/{version}/graphql.json';
+            $this->api_type = 'storefront';
+        }
+    }
+
+    /**
+     * Set rest api url
+     *
      * @param $rest_api_url
      * @param $app_type
      */
@@ -393,15 +434,18 @@ class Client implements ClientInterface
     }
 
     /**
-     * get rest api url app
+     * Get rest api url app
+     *
      * @return string
      */
-    public function getRestApiUrl(){
+    public function getRestApiUrl()
+    {
         return $this->rest_api_url;
     }
 
     /**
-     * set graphql api url
+     * Set graphql api url
+     *
      * @param $graphql_api_url
      */
     public function setGraphqlApiUrl($graphql_api_url)
@@ -412,18 +456,22 @@ class Client implements ClientInterface
     }
 
     /**
-     * get graphql api url
+     * Get graphql api url
+     *
      * @return string
      */
-    public function getGraphqlApiUrl(){
+    public function getGraphqlApiUrl()
+    {
         return $this->graphql_api_url;
     }
 
     /**
-     * set rest api headers
-     * @return string
+     * Set rest api headers
+     *
+     * @return void
      */
-    public function setRestApiHeaders($access_token = ''){
+    public function setRestApiHeaders($access_token = '')
+    {
         $this->restApiRequestHeaders['Content-Type'] = "application/json";
         if($access_token){
             $this->restApiRequestHeaders[self::SHOPIFY_ACCESS_TOKEN] = $this->access_token;
@@ -432,93 +480,119 @@ class Client implements ClientInterface
 
 
     /**
-     * get rest api headers
+     * Get rest api headers
+     *
      * @return array
      */
-    public function getRestApiHeaders(){
+    public function getRestApiHeaders()
+    {
         return $this->restApiRequestHeaders;
     }
 
     /**
-     * get graphql api url
-     * @return string
+     * Get graphql api url
+     *
+     * @param $access_token
      */
-    public function setGraphqlApiHeaders($access_token){
+    public function setGraphqlApiHeaders($access_token)
+    {
         $this->graphqlApiRequestHeaders['Content-Type'] = "application/graphql";
         $this->graphqlApiRequestHeaders['X-GraphQL-Cost-Include-Fields'] = true;
-        $this->graphqlApiRequestHeaders[self::SHOPIFY_ACCESS_TOKEN] = $access_token;
+
+        // Set api token header according to api type either admin or storefront API
+        $token_header = $this->api_type == 'storefront' ? self::SHOPIFY_STOREFRONT_ACCESS_TOKEN
+            : self::SHOPIFY_ACCESS_TOKEN;
+        $this->graphqlApiRequestHeaders[$token_header] = $access_token;
     }
 
     /**
-     * get graphql api url
-     * @return string
+     * Get graphql api url
+     *
+     * @return array
      */
-    public function getGraphqlApiHeaders(){
+    public function getGraphqlApiHeaders()
+    {
         return $this->graphqlApiRequestHeaders;
     }
 
 
     /**
-     * set api_key of public or private app
-     *  @param $api_key
+     * Set api_key of public or private app
+     *
+     * @param $api_key
      */
-    public function setApiKey($api_key){
+    public function setApiKey($api_key)
+    {
         $this->api_key = $api_key;
     }
 
     /**
-     * get api_key of public or private app
+     * Get api_key of public or private app
+     *
      * @return string
      */
-    public function getApiKey(){
+    public function getApiKey()
+    {
         return $this->api_key;
     }
 
     /**
-     * set api_key of public or private app
-     *  @param $api_password
+     * Set api_key of public or private app
+     *
+     * @param $api_password
      */
-    public function setApiPassword($api_password){
+    public function setApiPassword($api_password)
+    {
         $this->password = $api_password;
     }
 
     /**
-     * get api_password of private app
+     * Get api_password of private app
+     *
      * @return string
      */
-    public function getApiPassword(){
+    public function getApiPassword()
+    {
         return $this->password;
     }
 
     /**
-     * set api secret key for public app
+     * Set api secret key for public app
+     *
      * @param $api_secret_key
      */
-    public function setApiSecretKey($api_secret_key){
+    public function setApiSecretKey($api_secret_key)
+    {
         $this->api_secret_key = $api_secret_key;
     }
 
     /**
-     * get api secret key for public app
+     * Get api secret key for public app
+     *
      * @return string
      */
-    public function getApiSecretKey(){
+    public function getApiSecretKey()
+    {
         return $this->api_secret_key;
     }
 
     /**
-     * set api_params of public or private app
+     * Set api_params of public or private app
+     *
      * @param  $api_params
      */
-    public function setApiParams($api_params){
+    public function setApiParams($api_params)
+    {
         $this->api_params = $api_params;
     }
 
     /**
-     * get api_params of public or private app
+     * Get api_params of public or private app
+     *
      * @return string
      */
-    public function getApiParams(){
+    public function getApiParams()
+    {
         return $this->api_params;
     }
 }
