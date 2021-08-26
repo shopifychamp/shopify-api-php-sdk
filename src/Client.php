@@ -12,101 +12,111 @@ use Shopify\Exception\ApiException;
 class Client implements ClientInterface
 {
     /**
-     * define constant for current Shopify api version
+     * Define constant for current Shopify api version
      */
     const SHOPIFY_API_VERSION = '2020-07';
 
     /**
-     * define rest api call
+     * Define rest api call
      */
     const REST_API = 'rest';
 
     /**
-     * define private app
+     * Define private app
      */
     const PRIVATE_APP = 'private';
 
     /**
-     * header parameter of shopify access token
+     * Header parameter of shopify access token
      */
     const SHOPIFY_ACCESS_TOKEN = 'X-Shopify-Access-Token';
 
     /**
-     * denine response header pagination string
+     * Define response header pagination string
      */
     const PAGINATION_STRING = 'Link';
 
     /**
-     * response header parameter of shopify api limit
+     * Response header parameter of shopify api limit
      */
     const API_CALL_RATE_LIMIT_HEADER = 'http_x_shopify_shop_api_call_limit';
 
     /**
-     * define graphQL api call
+     * Define graphQL api call
      */
     const GRAPHQL = 'graphql';
 
     /**
      * Shopify graphql base url
+     *
      * @var string
      */
     protected $graphql_api_url = "https://{shopify_domain}/admin/api/{version}/graphql.json";
 
     /**
-     * rest api url for custom/public app
+     * Rest api url for custom/public app
+     *
      * @var string
      */
     protected $rest_api_url = 'https://{shopify_domain}/admin/api/{version}/{resource}.json';
 
     /**
      * Shopify domain name
+     *
      * @var string
      */
     protected $shop;
 
     /**
      * Shopify api key
+     *
      * @var string
      */
     protected $api_key;
 
     /**
      * Shopify password for private app
+     *
      * @var string
      */
     protected $password;
 
     /**
      * Shopify shared secret key for private app
+     *
      * @var string
      */
     protected $api_secret_key;
 
     /**
      * access token for public app
+     *
      * @var string
      */
     protected $access_token;
+
     /**
      * array('version')
+     *
      * @var array
      */
     protected $api_params;
 
     /**
      * Shopify api call url
+     *
      * @var array
      */
     protected $base_urls;
 
     /**
-     * get api header array according to private and public app for rest api
+     * Get api header array according to private and public app for rest api
      * @var array
      */
     protected $restApiRequestHeaders;
 
     /**
-     * get api header array according to private and public app for graphql api
+     * Get api header array according to private and public app for graphql api
      * @var array
      */
     protected $graphqlApiRequestHeaders;
@@ -118,25 +128,26 @@ class Client implements ClientInterface
     protected $api_version;
 
     /**
-     * get response header
+     * Get response header
      * @var string
      */
     protected $next_page;
 
     /**
-     * get response header
+     * Get response header
      * @var string
      */
     protected $prev_page;
 
     /**
-     * static variable to api is going to reach
+     * Static variable to api is going to reach
      * @var bool
      */
     protected static $wait_next_api_call = false;
 
     /**
-     * prepare data for rest api request
+     * Prepare data for rest api request
+     *
      * @param $method
      * @param $path
      * @param array $params
@@ -155,6 +166,12 @@ class Client implements ClientInterface
         if(is_array($this->getRestApiHeaders()) && count($this->getRestApiHeaders())) {
             $options['headers'] = $this->getRestApiHeaders();
         }
+
+        // Change url in case of access_scopes
+        if($path == 'access_scopes'){
+            $url = $this->apiScopeUrl($url);
+        }
+
         $url=strtr($url, [
             '{resource}' => $path,
         ]);
@@ -181,7 +198,19 @@ class Client implements ClientInterface
     }
 
     /**
-     * prepare data for graphql api request
+     * Prepare data for graphql api request
+     *
+     * @param string $url
+     * @return string
+     *
+     */
+    public function apiScopeUrl($url){
+        return str_replace('api/'.$this->getApiVersion().'/', 'oauth/', $url);
+    }
+
+    /**
+     * Prepare data for graphql api request
+     *
      * @param string $query
      * @return mixed|void
      * @throws ApiException
@@ -200,7 +229,12 @@ class Client implements ClientInterface
         if(isset($response['errors']))
         {
             $http_bad_request_code = 400;
-            throw new ApiException(\GuzzleHttp\json_encode($response['errors']),$http_bad_request_code);
+
+            $error_message = $response['errors'];
+            if(is_array($response['errors']))
+                $error_message = json_encode($response['errors']);
+
+            throw new ApiException($error_message,$http_bad_request_code);
         }
         return $response;
     }
@@ -223,12 +257,9 @@ class Client implements ClientInterface
         catch (RequestException $e)
         {
             $json_error = json_decode($e->getResponse()->getBody()->getContents(),true);
-            if (isset($json_error['errors'])) {
-                $error_message = \GuzzleHttp\json_encode($json_error);
-            }
-            else {
-                $error_message = $e->getMessage();
-            }
+            $error_message = $json_error['errors'] ?? $e->getMessage();
+            if(is_array($error_message))
+                $error_message = json_encode($error_message);
             throw new ApiException($error_message,$e->getCode());
         }
     }

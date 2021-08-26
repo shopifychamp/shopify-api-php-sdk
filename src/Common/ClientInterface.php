@@ -32,7 +32,7 @@ interface ClientInterface
 
     /**
      * @return mixed
-     * get latest version of shopify
+     * Get latest version of shopify
      */
 	public function getApiVersion();
 

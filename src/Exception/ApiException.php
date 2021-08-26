@@ -25,7 +25,7 @@ class ApiException extends \Exception
 
     /**
      * @return string
-     * get error message
+     * Get error message
      */
     function getError() {
         return $this->message;
