@@ -1,6 +1,5 @@
 # SHOPIFY API PHP SDK
 
-[![Build Status](https://travis-ci.org/shopifychamp/shopify-api-php-sdk.svg?branch=master)](https://travis-ci.org/shopifychamp/shopify-api-php-sdk)
 [![Latest Stable Version](https://poser.pugx.org/shopifychamp/shopify-api-php-sdk/v/stable)](https://packagist.org/packages/shopifychamp/shopify-api-php-sdk)
 [![License](https://poser.pugx.org/shopifychamp/shopify-api-php-sdk/license)](https://packagist.org/packages/shopifychamp/shopify-api-php-sdk)
 
